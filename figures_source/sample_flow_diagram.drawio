@@ -1,0 +1,43 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.0.2 Chrome/114.0.5735.289 Electron/25.8.4 Safari/537.36" modified="2026-05-12T05:14:30.210Z" version="22.0.2" etag="hC_Q6BPDB-Gr5IQhRqcK" type="device">
+  <diagram id="sample_flow" name="Sample flow">
+    <mxGraphModel dx="1026" dy="748" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="b_start" value="&lt;b&gt;Total unweighted households from MEPS,&lt;br&gt;2018&amp;ndash;2024&lt;/b&gt;&lt;br&gt;&lt;br&gt;n = 83,123" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=12;fontFamily=Helvetica;align=center;verticalAlign=middle;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="200" y="40" width="340" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="P41ds9i_CnaGWzHbmnGb-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="b_after_survey" target="b_final">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="b_after_survey" value="&lt;b&gt;Households with valid survey design&lt;/b&gt;&lt;br&gt;&lt;br&gt;n = 76,273" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=12;fontFamily=Helvetica;align=center;verticalAlign=middle;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="200" y="240" width="340" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="b_final" value="&lt;b&gt;Final analytic sample&lt;/b&gt;&lt;br&gt;&lt;br&gt;n = 75,484 households" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#000000;fontSize=12;fontFamily=Helvetica;align=center;verticalAlign=middle;spacing=8;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="200" y="430" width="340" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="x_survey" value="&lt;b&gt;Excluded: Outside the weighted survey scope&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;n = 6,850&lt;br&gt;&lt;br&gt;• No positive pooled survey weight: 6,850" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontFamily=Helvetica;align=left;verticalAlign=top;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="560" y="130" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="x_covars" value="&lt;b&gt;Excluded: Missing household-level covariates&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;n = 789&lt;br&gt;&lt;br&gt;• Missing geographic region: 789" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;fontSize=11;fontFamily=Helvetica;align=left;verticalAlign=top;spacing=8;" parent="1" vertex="1">
+          <mxGeometry x="560" y="320" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="a1" style="endArrow=classic;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="b_start" target="b_after_survey" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="P41ds9i_CnaGWzHbmnGb-1" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="x_survey">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="370" y="180" as="sourcePoint" />
+            <mxPoint x="450" y="280" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P41ds9i_CnaGWzHbmnGb-4" value="" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" target="x_covars">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="370" y="370" as="sourcePoint" />
+            <mxPoint x="590" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
