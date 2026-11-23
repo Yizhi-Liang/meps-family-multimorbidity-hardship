@@ -1,7 +1,9 @@
 ###############################################################################
 # 07b_main_analysis.R — format main analysis + the 4-category multimorbidity sens.
-# In:  $data/clean/main_results.csv (+ sens_multimorb_4cat_stata.csv from 07a)
-# Out: $proj/output/tabs/{main_results,multimorb_4cat}.xlsx
+#      + the re-estimation among coverage-concordant households.
+# In:  $data/clean/main_results.csv (+ sens_multimorb_4cat_stata.csv,
+#      sens_cov_concordant_stata.csv from 07a)
+# Out: $proj/output/tabs/{main_results,multimorb_4cat,sens_cov_concordant}.xlsx
 #      $proj/output/figs/main_predicted.pdf, main_heatmap.pdf,
 #      main_forest.pdf
 ###############################################################################
@@ -51,10 +53,10 @@ res <- read.csv(file.path(proj, "data", "clean", "main_results.csv"),
 cat("Loaded", nrow(res), "result rows\n")
 cat("Types:", paste(unique(res$type), collapse = ", "), "\n")
 
-outcome_labels <- c(che_40 = "CHE (40%)", fam_debt_any = "Medical Debt",
-                    fam_barrier_any = "Cost-Related Barriers",
-                    fam_any_hardship = "Any Hardship")
-outcome_order <- c("CHE (40%)", "Medical Debt", "Cost-Related Barriers", "Any Hardship")
+outcome_labels <- c(che_40 = "A. CHE (40%)", fam_debt_any = "B. Medical Debt",
+                    fam_barrier_any = "C. Cost-Related Barriers",
+                    fam_any_hardship = "D. Any Hardship")
+outcome_order <- c("A. CHE (40%)", "B. Medical Debt", "C. Cost-Related Barriers", "D. Any Hardship")
 
 # B. Holm-Bonferroni within each outcome (separately for diffs and contrasts)
 diffs <- res %>%
@@ -287,12 +289,13 @@ cat("Loaded", nrow(sens4), "rows from sens_multimorb_4cat_stata.csv\n")
 dis4_levels <- c("0", "1", "2-3", "4+")
 
 # eTable 5 display formats: probabilities "1.9 (1.3-2.9)", differences "1.4 (-0.6 to 3.4)", and
-# P values without a leading zero ("<.001"; three decimals below .01, two decimals otherwise).
+# P values without a leading zero ("<.001"; three decimals below .01 and where two decimals would
+# print .05, so that a P value such as .049 does not read as .05; two decimals otherwise).
 fmt_prob_ci <- function(e, lo, hi) sprintf("%.1f (%.1f-%.1f)", 100 * e, 100 * lo, 100 * hi)
 fmt_diff_ci <- function(e, lo, hi) sprintf("%.1f (%.1f to %.1f)", 100 * e, 100 * lo, 100 * hi)
 fmt_p <- function(p) {
   ifelse(p < 0.001, "<.001",
-         ifelse(p < 0.01, sub("^0", "", sprintf("%.3f", p)),
+         ifelse(p < 0.01 | sprintf("%.2f", p) == "0.05", sub("^0", "", sprintf("%.3f", p)),
                 ifelse(sprintf("%.2f", p) == "1.00", ">.99", sub("^0", "", sprintf("%.2f", p)))))
 }
 etable5_outcome_labels <- c(che_40 = "CHE (40%)", fam_debt_any = "Medical debt",
@@ -379,6 +382,177 @@ as.data.frame(sens4_comparison) %>% print()
 sens4_xlsx <- file.path(proj, "output", "tabs", "multimorb_4cat.xlsx")
 write_xlsx(list("3-level vs 4-level comparison" = sens4_comparison), path = sens4_xlsx)
 cat("\n4-category sensitivity saved to:", sens4_xlsx, "\n")
+
+# G. Coverage-concordant households (eTable 6): the section E models of 07a re-estimated
+#    with svy subpop() among households in which no member's full-year coverage type
+#    differs from the key member's, beside the full-sample results of main_results.csv.
+cat("\n--- Section G: Coverage-concordant households ---\n")
+conc_path <- file.path(proj, "data", "clean", "sens_cov_concordant_stata.csv")
+if (!file.exists(conc_path)) {
+  stop("Step 7b: ", conc_path, " not found. Re-run 07a to produce it.")
+}
+conc <- read.csv(conc_path, stringsAsFactors = FALSE)
+cat("Loaded", nrow(conc), "rows from sens_cov_concordant_stata.csv\n")
+stopifnot("eTable 6: unexpected row count" = nrow(conc) == 4 * 57 + 12)
+
+# Holm-Bonferroni as in section B: within each outcome over the 12 insurance and
+# multimorbidity differences (contrasts separately, 9 per outcome).
+conc_diffs <- conc %>%
+  filter(type %in% c("ins_diff", "morb_diff")) %>%
+  group_by(outcome) %>%
+  mutate(family_n = n(), p_adj = p.adjust(pvalue, method = "holm")) %>%
+  ungroup()
+stopifnot("eTable 6: every outcome needs a 12-member Holm family with no missing P" =
+            !anyNA(conc_diffs$pvalue) && all(conc_diffs$family_n == 12) &&
+            setequal(conc_diffs$outcome, names(etable5_outcome_labels)))
+
+conc_contrasts <- conc %>%
+  filter(type == "contrast") %>%
+  group_by(outcome) %>%
+  mutate(family_n = n(), p_adj = p.adjust(pvalue, method = "holm")) %>%
+  ungroup()
+stopifnot("eTable 6: every outcome needs 9 contrasts" = all(conc_contrasts$family_n == 9))
+
+conc_key <- c("outcome", "ins_type", "dis_cat")
+
+conc_n <- conc %>%
+  filter(type %in% c("n_full", "n_conc")) %>%
+  select(all_of(conc_key), type, estimate) %>%
+  pivot_wider(names_from = type, values_from = estimate)
+
+full_cells <- preds %>%
+  transmute(outcome, ins_type, dis_cat,
+            full_pred = fmt_prob_ci(estimate, ci_lower, ci_upper))
+conc_cells <- conc %>%
+  filter(type == "pred") %>%
+  transmute(outcome, ins_type, dis_cat,
+            conc_pred = fmt_prob_ci(estimate, ci_lower, ci_upper))
+full_morb <- diffs %>%
+  filter(type == "morb_diff") %>%
+  transmute(outcome, ins_type, dis_cat,
+            full_diff = fmt_diff_ci(estimate, ci_lower, ci_upper),
+            full_p = fmt_p(p_adj))
+conc_morb <- conc_diffs %>%
+  filter(type == "morb_diff") %>%
+  transmute(outcome, ins_type, dis_cat,
+            conc_diff = fmt_diff_ci(estimate, ci_lower, ci_upper),
+            conc_p = fmt_p(p_adj))
+
+conc_table <- full_cells %>%
+  full_join(conc_cells, by = conc_key) %>%
+  full_join(conc_n, by = conc_key) %>%
+  left_join(full_morb, by = conc_key) %>%
+  left_join(conc_morb, by = conc_key)
+stopifnot("eTable 6: 36 cells, each with both estimates and both counts" =
+            nrow(conc_table) == 36 &&
+            !anyNA(conc_table[, c("full_pred", "conc_pred", "n_full", "n_conc")]))
+
+conc_table <- conc_table %>%
+  arrange(factor(outcome, levels = names(etable5_outcome_labels)),
+          factor(ins_type, levels = ins_levels),
+          factor(dis_cat, levels = dis_levels)) %>%
+  transmute(
+    Outcome = unname(etable5_outcome_labels[outcome]),
+    Insurance = ins_type,
+    `Household multimorbidity` = dis_cat,
+    `All households: No.` = as.integer(n_full),
+    `All households: Adjusted probability, % (95% CI)` = full_pred,
+    `All households: Difference vs 0, pp (95% CI)` = full_diff,
+    `All households: Holm-adjusted P` = full_p,
+    `Coverage-concordant households: No.` = as.integer(n_conc),
+    `Coverage-concordant households: Adjusted probability, % (95% CI)` = conc_pred,
+    `Coverage-concordant households: Difference vs 0, pp (95% CI)` = conc_diff,
+    `Coverage-concordant households: Holm-adjusted P` = conc_p
+  )
+
+# Insurance differences (public or private vs no insurance) within each multimorbidity level
+full_ins <- diffs %>%
+  filter(type == "ins_diff") %>%
+  transmute(outcome, ins_type, dis_cat,
+            full_diff = fmt_diff_ci(estimate, ci_lower, ci_upper),
+            full_p = fmt_p(p_adj))
+conc_ins <- conc_diffs %>%
+  filter(type == "ins_diff") %>%
+  transmute(outcome, ins_type, dis_cat,
+            conc_diff = fmt_diff_ci(estimate, ci_lower, ci_upper),
+            conc_p = fmt_p(p_adj))
+conc_ins_table <- full_ins %>%
+  full_join(conc_ins, by = conc_key)
+stopifnot("eTable 6: 24 insurance differences in both samples" =
+            nrow(conc_ins_table) == 24 && !anyNA(conc_ins_table))
+conc_ins_table <- conc_ins_table %>%
+  arrange(factor(outcome, levels = names(etable5_outcome_labels)),
+          factor(ins_type, levels = ins_levels),
+          factor(dis_cat, levels = dis_levels)) %>%
+  transmute(
+    Outcome = unname(etable5_outcome_labels[outcome]),
+    Comparison = paste(ins_type, "vs No Insurance"),
+    `Household multimorbidity` = dis_cat,
+    `All households: Difference, pp (95% CI)` = full_diff,
+    `All households: Holm-adjusted P` = full_p,
+    `Coverage-concordant households: Difference, pp (95% CI)` = conc_diff,
+    `Coverage-concordant households: Holm-adjusted P` = conc_p
+  )
+
+# Difference-in-slopes contrasts (Holm over the 9 contrasts of each outcome)
+conc_contrast_table <- contrasts %>%
+  transmute(outcome, ins_type, dis_cat,
+            full_diff = fmt_diff_ci(estimate, ci_lower, ci_upper),
+            full_p = fmt_p(p_adj)) %>%
+  full_join(conc_contrasts %>%
+              transmute(outcome, ins_type, dis_cat,
+                        conc_diff = fmt_diff_ci(estimate, ci_lower, ci_upper),
+                        conc_p = fmt_p(p_adj)),
+            by = conc_key)
+stopifnot("eTable 6: 36 contrasts in both samples" =
+            nrow(conc_contrast_table) == 36 && !anyNA(conc_contrast_table))
+conc_contrast_table <- conc_contrast_table %>%
+  arrange(factor(outcome, levels = names(etable5_outcome_labels))) %>%
+  transmute(
+    Outcome = unname(etable5_outcome_labels[outcome]),
+    `Insurance pair` = ins_type,
+    `Multimorbidity pair` = dis_cat,
+    `All households: Difference in differences, pp (95% CI)` = full_diff,
+    `All households: Holm-adjusted P` = full_p,
+    `Coverage-concordant households: Difference in differences, pp (95% CI)` = conc_diff,
+    `Coverage-concordant households: Holm-adjusted P` = conc_p
+  )
+
+# Households by concordance, overall and by insurance type (unweighted; weighted share)
+conc_sample <- conc %>%
+  filter(type %in% c("n_hh", "n_disc")) %>%
+  select(ins_type, type, estimate) %>%
+  pivot_wider(names_from = type, values_from = estimate) %>%
+  left_join(conc %>%
+              filter(type == "share") %>%
+              transmute(ins_type,
+                        share = fmt_prob_ci(estimate, ci_lower, ci_upper)),
+            by = "ins_type")
+stopifnot("eTable 6: 4 sample rows" = nrow(conc_sample) == 4 && !anyNA(conc_sample))
+conc_sample <- conc_sample %>%
+  arrange(factor(ins_type, levels = c("Overall", ins_levels))) %>%
+  transmute(
+    Insurance = ins_type,
+    `Households, No.` = as.integer(n_hh),
+    `Households with a member of another coverage type, No.` = as.integer(n_disc),
+    `Coverage-concordant households, No.` = as.integer(n_hh - n_disc),
+    `Households with a member of another coverage type, weighted % (95% CI)` = share
+  )
+
+cat("\n--- Households by coverage concordance ---\n")
+as.data.frame(conc_sample) %>% print()
+cat("\n--- All vs coverage-concordant households: probabilities and differences vs 0 ---\n")
+as.data.frame(conc_table) %>% print()
+cat("\n--- All vs coverage-concordant households: insurance differences ---\n")
+as.data.frame(conc_ins_table) %>% print()
+
+conc_xlsx <- file.path(proj, "output", "tabs", "sens_cov_concordant.xlsx")
+write_xlsx(list("concordant vs all households" = conc_table,
+                "insurance differences" = conc_ins_table,
+                "interaction contrasts" = conc_contrast_table,
+                "households" = conc_sample),
+           path = conc_xlsx)
+cat("\nCoverage-concordant re-estimation saved to:", conc_xlsx, "\n")
 
 cat("\n=== Step 7b complete ===\n")
 cat("End:", format(Sys.time()), "\n")

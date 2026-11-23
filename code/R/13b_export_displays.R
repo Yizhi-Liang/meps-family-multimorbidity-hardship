@@ -1,10 +1,10 @@
 ###############################################################################
 # 13b_export_displays.R — copy the manuscript's reported display items into
 # displays/ under their manuscript labels (Figures 1-4, eFigures 1-5, Table 1,
-# eTables 1-5), keeping only the reported worksheet(s) of each workbook.
+# eTables 1-6), keeping only the reported worksheet(s) of each workbook.
 # In:  output/figs/*.pdf, output/tabs/*.xlsx (the pipeline's publication
 #      outputs named in the mapping table below)
-# Out: $proj/displays/Figure1.pdf ... eTable5.xlsx
+# Out: $proj/displays/Figure1.pdf ... eTable6.xlsx
 ###############################################################################
 
 proj_env <- Sys.getenv("MEPS_PROTECTION_PROJ", unset = "")
@@ -31,7 +31,7 @@ displays <- data.frame(
     "eFigure1.pdf", "eFigure2.pdf", "eFigure3.pdf",
     "eFigure4.pdf", "eFigure5.pdf",
     "Table1.xlsx", "eTable1.xlsx", "eTable2.xlsx", "eTable3.xlsx",
-    "eTable4.xlsx", "eTable5.xlsx"
+    "eTable4.xlsx", "eTable5.xlsx", "eTable6.xlsx"
   ),
   source = c(
     "output/figs/oop_burden_distribution.pdf",
@@ -48,7 +48,8 @@ displays <- data.frame(
     "output/tabs/hardship_states.xlsx",
     "output/tabs/sens_nonpos_income.xlsx",
     "output/tabs/sens_covid_period.xlsx",
-    "output/tabs/multimorb_4cat.xlsx"
+    "output/tabs/multimorb_4cat.xlsx",
+    "output/tabs/sens_cov_concordant.xlsx"
   ),
   sheets = c(
     NA, NA, NA, NA,
@@ -57,7 +58,8 @@ displays <- data.frame(
     "states; ratios; differences",
     "exclusion_results; states_positive_income; ratios_positive_income",
     "prepost_margins; period_differences",
-    "3-level vs 4-level comparison"
+    "3-level vs 4-level comparison",
+    "concordant vs all households; insurance differences; interaction contrasts; households"
   ),
   stringsAsFactors = FALSE
 )
@@ -236,7 +238,7 @@ for (i in seq_len(nrow(displays))) {
 }
 
 # ---------------------------------------------------------------------------
-# Delete any file in displays/ that is not one of the 15 display items.
+# Delete any file in displays/ that is not one of the 16 display items.
 # ---------------------------------------------------------------------------
 stale <- setdiff(list.files(displays_dir), displays$display)
 for (f in stale) {
@@ -245,7 +247,7 @@ for (f in stale) {
   unlink(stale_path, recursive = TRUE)
 }
 
-cat("\n13b done: 15 display items exported\n")
+cat("\n13b done: 16 display items exported\n")
 
 cat("\n=== Step 13b complete ===\n")
 cat("End:", format(Sys.time()), "\n")

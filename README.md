@@ -68,6 +68,7 @@ Step 13 and is never edited by hand.
 | eTable 3 | `eTable3.xlsx` | 9 | `tabs/sens_nonpos_income.xlsx`, sheets `exclusion_results`, `states_positive_income`, `ratios_positive_income` |
 | eTable 4 | `eTable4.xlsx` | 10 | `tabs/sens_covid_period.xlsx`, sheets `prepost_margins`, `period_differences` |
 | eTable 5 | `eTable5.xlsx` | 7 | `tabs/multimorb_4cat.xlsx`, sheet `3-level vs 4-level comparison` |
+| eTable 6 | `eTable6.xlsx` | 7 | `tabs/sens_cov_concordant.xlsx`, sheets `concordant vs all households`, `insurance differences`, `interaction contrasts`, `households` |
 | eFigure 1 | `eFigure1.pdf` | — | `figures_source/sample_flow_diagram.pdf` (drawn by hand from the Step 4 sample-flow counts) |
 | eFigure 2 | `eFigure2.pdf` | 7 | `figs/main_heatmap.pdf` |
 | eFigure 3 | `eFigure3.pdf` | 7 | `figs/main_forest.pdf` |
@@ -121,7 +122,7 @@ sample and burden distribution by Step 12a (`12a_intrahh.log`).
 ├── displays/                     # The display items, under their manuscript labels
 │   ├── Table1.xlsx
 │   ├── Figure1.pdf … Figure4.pdf
-│   ├── eTable1.xlsx … eTable5.xlsx
+│   ├── eTable1.xlsx … eTable6.xlsx
 │   └── eFigure1.pdf … eFigure5.pdf
 ├── .Rprofile                     # Activates renv
 ├── renv/                         # renv bootstrap (activate.R, settings.json)

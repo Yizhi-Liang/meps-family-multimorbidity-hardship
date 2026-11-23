@@ -4,7 +4,7 @@
     1-4  data build (load and harmonize, person variables, household aggregation, pooling)
     5    descriptive tables (Table 1, eTable 1)
     6    OOP burden-ratio distribution (Figure 1)
-    7    main models (Figure 2, eFigures 2-3, eTable 5)
+    7    main models (Figure 2, eFigures 2-3, eTables 5-6)
     8    four mutually exclusive hardship states (Figures 3-4, eTable 2)
     9    re-estimation among households with positive income (eTable 3)
     10   COVID-period sensitivity (eTable 4)
@@ -155,7 +155,7 @@ if _rc != 0 {
     exit 603
 }
 
-* Step 7: main models (Figure 2, eFigures 2-3, eTable 5)
+* Step 7: main models (Figure 2, eFigures 2-3, eTables 5-6)
 di _n ">>> Step 7a: Main Analysis"
 capture noisily do "$code/stata/07a_main_analysis.do"
 if _rc != 0 {
@@ -195,6 +195,11 @@ if _rc != 0 {
 capture confirm file "$proj/output/tabs/multimorb_4cat.xlsx"
 if _rc != 0 {
     di as error "ERROR: Step 7b did not create $proj/output/tabs/multimorb_4cat.xlsx"
+    exit 603
+}
+capture confirm file "$proj/output/tabs/sens_cov_concordant.xlsx"
+if _rc != 0 {
+    di as error "ERROR: Step 7b did not create $proj/output/tabs/sens_cov_concordant.xlsx"
     exit 603
 }
 
@@ -333,7 +338,7 @@ if _rc != 0 {
     exit 603
 }
 
-* Step 13: export the display items (Figures 1-4, eFigures 1-5, Table 1, eTables 1-5)
+* Step 13: export the display items (Figures 1-4, eFigures 1-5, Table 1, eTables 1-6)
 di _n ">>> Step 13b: Export Display Items"
 capture noisily shell bash -lc "stdbuf -oL -eL \"$rscript\" \"$code/R/13b_export_displays.R\""
 if _rc != 0 {
@@ -347,9 +352,9 @@ if _rc != 0 {
     di as error "ERROR: Step 13b did not create $proj/displays/Figure1.pdf"
     exit 603
 }
-capture confirm file "$proj/displays/eTable5.xlsx"
+capture confirm file "$proj/displays/eTable6.xlsx"
 if _rc != 0 {
-    di as error "ERROR: Step 13b did not create $proj/displays/eTable5.xlsx"
+    di as error "ERROR: Step 13b did not create $proj/displays/eTable6.xlsx"
     exit 603
 }
 
