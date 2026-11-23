@@ -1,8 +1,7 @@
 # MEPS Household Multimorbidity & Financial Hardship — Analytic Code
 
 This repository contains the full Stata + R analytic pipeline for the analysis
-"Distribution of Financial Hardship by Multimorbidity and Insurance Type Among
-US Households".
+"Household Multimorbidity, Insurance Type, and Financial Hardship".
 
 The repository carries no MEPS microdata; users obtain the public-use files
 directly from AHRQ.
